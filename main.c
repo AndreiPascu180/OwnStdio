@@ -3,7 +3,7 @@
 
 int main()
 {
-    SO_FILE *file = so_fopen("out.txt", "r+");
+    SO_FILE *file = so_fopen("out.txt", "a+");
     if (file == NULL)
     {
         printf("fail to open file\n");
@@ -18,6 +18,11 @@ int main()
     printf("Caracter citit2:%c\n", c2);
     printf("Caracter citit3:%c\n", c3);
     printf("Caracter citit4:%c\n", c4);
+    so_fflush(file);
+    so_fputc(c1,file);
+    so_fputc(c2,file);
+    so_fputc(c3,file);
+
 
     so_fclose(file);
     return 0;
