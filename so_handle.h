@@ -1,6 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
-#if defined(__linux__)
+#define _DEBUG_
 #include <stdio.h>
+#include "stdio.h"
+
+#if defined(__linux__)
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -24,7 +27,7 @@
 
 struct _so_file{
 
-#ifdef(__linux__)
+#ifdef __linux__
     int fd;
 #elif defined(_WIN32)
     HANDLE fd;
@@ -33,21 +36,23 @@ struct _so_file{
 #error "Unknown platform"
 #endif
 
-
-    char* _read_ptr;    /* Current read pointer */
-    char* _read_end;    /* End of get area. */
-    char* _read_base;    /* Start of putback+get area. */
-    char* _write_base;    /* Start of put area. */
-    char* _write_ptr;    /* Current put pointer. */
-    char* _write_end;    /* End of put area. */
     char* _buf_base;    /* Start of reserve area. */
     char* _buf_end;    /* End of reserve area. */
-    /* The following fields are used to support backing up and undo. */
-    char* _save_base; /* Pointer to start of non-current get area. */
-    char* _backup_base;  /* Pointer to first valid character of backup area */
-    char* _save_end; /* Pointer to end of non-current get area. */
-    
-    
-    int _fileno;
 
-}
+    int buffer_offset; /*Offset in buffer until where data was written*/
+
+    /* FLAGS */
+    int _feof;    /* Set when the pointer reaches the end of the file */
+    int _ferror;    /* Set when the file is not opened for reading */
+
+    char last_operation; /*Remember last operation 'r' or 'w'*/
+    int _can_read;  /*Set when stream opened for reading*/
+    int _can_write; /*Set when stream opened for writing*/
+    int _can_append; /*Set for append mode*/
+    int _can_update; /*Set for + mode*/
+
+    unsigned long _file_pointer_pos;
+    unsigned long readChars;
+    unsigned long writtenChars;
+
+};
