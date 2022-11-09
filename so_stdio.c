@@ -296,7 +296,7 @@ int so_fflush(SO_FILE *stream)
 #error "Unknown platform"
 #endif
 
-        memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
+        //memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
     }
     // * If we can update we set again the permissions for reading and writing
     if (stream->update_flag)
@@ -358,8 +358,8 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
 
 int so_fgetc(SO_FILE *stream)
 {
-    int chr;
-    int result;
+    int chr = 0;
+    int result = 0;
 
     // * If we can't read or we've reached the end of the file
     if (stream->read_flag == SO_FALSE || stream->_feof)
@@ -383,7 +383,7 @@ int so_fgetc(SO_FILE *stream)
     if (stream->_read_ptr == stream->_read_end)
     {
         int readBytes = 0;
-        memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
+        //memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
 
 #if defined(__linux__)
         readBytes = read(stream->fd, stream->_buf_base, SO_BUFFER_SIZE);
@@ -417,7 +417,7 @@ int so_fgetc(SO_FILE *stream)
 
     // if (chr < 0)
     // {
-    //     //PRINT_MY_ERROR("Invalid character");
+    //     PRINT_MY_ERROR("Invalid character");
     //     return SO_EOF;
     // }
 
@@ -549,11 +549,10 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     for (long i = 0; i < bytesToRead; i++)
     {
         c = so_fgetc(stream);
-        // if (c == SO_EOF)
-        // {
-        //     stream->_feof = SO_TRUE;
-        //     return bytesRead / size;
-        // }
+        if (stream -> _feof == SO_TRUE)
+        {
+            return bytesRead / size;
+        }
         given_buf[i] = c;
         bytesRead++;
     }
@@ -618,12 +617,12 @@ int so_fclose(SO_FILE *stream)
 #endif
 
     free(stream);
-    stream = NULL;
     if (err_code1 != 0 || err_code2 == SO_EOF)
     {
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
+    stream = NULL;
 
     return 0;
 }
