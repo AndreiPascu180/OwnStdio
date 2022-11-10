@@ -9,4 +9,4 @@ A homework project that implements the stdio library
 ### https://github.com/Th3Venin/stdio-library/blob/master/so_stdio.c
 ### https://github.com/rkibistu/Own-implementation-stdio.h/blob/master/so_stdio.c
 ### https://github.com/shawnq8861/System-Programming/tree/master/StdioImplementation
-### http://www.manpagez.com/man/3/fopen/
+### All the man pages for the functions in stdio - for return values, error cases etc.
