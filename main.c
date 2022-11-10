@@ -3,13 +3,17 @@
 
 int main()
 {
-    SO_FILE *file = so_fopen("out.txt", "w");
+    SO_FILE *file = so_fopen("out.txt", "a+");
     if (file == NULL)
     {
         printf("fail to open file\n");
         return 0;
     }
-    char buf[20]="Hello, world!";
+    char buf[4];
+    so_fread(&buf, 1, sizeof(buf)-1, file); 
+    int ret;
+    so_fseek(file,0,SEEK_END);
+    ret = so_fwrite(&buf,1,4,file);
     // int c1 = so_fgetc(file);
     // int c2 = so_fgetc(file);
     // int c3 = so_fgetc(file);
@@ -18,8 +22,7 @@ int main()
     // printf("Caracter citit2:%c\n", c2);
     // printf("Caracter citit3:%c\n", c3);
     // printf("Caracter citit4:%c\n", c4);
-    so_fputc(buf[0],file);
-    so_fputc(buf[1],file);
+    
     //so_fputc(c3,file);
 
 

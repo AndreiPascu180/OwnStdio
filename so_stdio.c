@@ -9,7 +9,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
 
     if (check_mode(mode) == SO_TRUE)
     {
-        so_file = (SO_FILE *)malloc(sizeof(SO_FILE));
+        so_file = (SO_FILE *)calloc(1, sizeof(SO_FILE));
         if (so_file == NULL)
         {
             ////PRINT_MY_ERROR("malloc failed");
@@ -25,7 +25,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDONLY);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -35,7 +35,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -59,7 +59,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDWR);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -69,7 +69,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -90,10 +90,10 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
         {
 
 #if defined(__linux__)
-            so_file->fd = open(pathname, O_WRONLY | O_TRUNC | O_CREAT, 0664);
+            so_file->fd = open(pathname, O_WRONLY | O_TRUNC | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -103,7 +103,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -127,7 +127,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -137,7 +137,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -161,7 +161,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_APPEND | O_WRONLY | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -171,7 +171,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -195,7 +195,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_APPEND | O_RDWR | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                //PRINT_MY_ERROR("open");
+                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -205,7 +205,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                //PRINT_MY_ERROR("CreateFile");
+                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -223,7 +223,7 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
     }
     else
     {
-        //PRINT_MY_ERROR("Invalid mode");
+        // PRINT_MY_ERROR("Invalid mode");
         return NULL;
     }
 
@@ -259,12 +259,12 @@ int so_fflush(SO_FILE *stream)
         if (bytesToWrite == 0)
             return 0;
 #if defined(__linux__)
-        while (count_total_bytes < bytesToWrite)
+        do
         {
             bytesWritten = write(stream->fd, stream->_buf_base + count_total_bytes, bytesToWrite - count_total_bytes);
             if (bytesWritten == -1)
             {
-                //PRINT_MY_ERROR("write from buffer failed");
+                // PRINT_MY_ERROR("write from buffer failed");
                 stream->_ferror = SO_TRUE;
                 return SO_EOF;
             }
@@ -274,7 +274,7 @@ int so_fflush(SO_FILE *stream)
                 return SO_EOF;
             }
             count_total_bytes += bytesWritten;
-        }
+        } while (count_total_bytes < bytesToWrite);
 #elif defined(_WIN32)
         BOOL result;
         while (count_total_bytes < bytesToWrite)
@@ -286,7 +286,7 @@ int so_fflush(SO_FILE *stream)
                                NULL);
             if (result != TRUE)
             {
-                //PRINT_MY_ERROR("Write-fflush");
+                // PRINT_MY_ERROR("Write-fflush");
                 return SO_EOF;
             }
 
@@ -296,7 +296,7 @@ int so_fflush(SO_FILE *stream)
 #error "Unknown platform"
 #endif
 
-        //memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
+        // memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
     }
     // * If we can update we set again the permissions for reading and writing
     if (stream->update_flag)
@@ -319,11 +319,11 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
 
     if (whence != SEEK_CUR && whence != SEEK_END && whence != SEEK_SET)
     {
-        //PRINT_MY_ERROR("Invalid whence");
+        // PRINT_MY_ERROR("Invalid whence");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
-    long ret;
+    int ret;
     ret = so_fflush(stream);
     if (ret != 0)
     {
@@ -335,7 +335,7 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
     ret = lseek(stream->fd, offset, whence); // * System call to change the file pointer position to offset relative to the whence
     if (ret == -1)
     {
-        //PRINT_MY_ERROR("lseek");
+        // PRINT_MY_ERROR("lseek");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
@@ -343,7 +343,7 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
     ret = SetFilePointer(stream->fd, offset, NULL, whence);
     if (ret == INVALID_SET_FILE_POINTER)
     {
-        //PRINT_MY_ERROR("SetFilePointer");
+        // PRINT_MY_ERROR("SetFilePointer");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
@@ -367,7 +367,7 @@ int so_fgetc(SO_FILE *stream)
         // * If we can't read AND we can update
         if (stream->read_flag == SO_FALSE && stream->update_flag == SO_TRUE)
         {
-            //PRINT_MY_ERROR("Fflush needed");
+            // PRINT_MY_ERROR("Fflush needed");
             return SO_EOF;
         }
     }
@@ -383,13 +383,13 @@ int so_fgetc(SO_FILE *stream)
     if (stream->_read_ptr == stream->_read_end)
     {
         int readBytes = 0;
-        //memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
+        // memset(stream->_buf_base, 0, SO_BUFFER_SIZE);
 
 #if defined(__linux__)
         readBytes = read(stream->fd, stream->_buf_base, SO_BUFFER_SIZE);
         if (readBytes == -1)
         {
-            //PRINT_MY_ERROR("read into buffer failed");
+            // PRINT_MY_ERROR("read into buffer failed");
             stream->_ferror = SO_TRUE;
             return SO_EOF;
         }
@@ -433,18 +433,8 @@ int so_fputc(int c, SO_FILE *stream)
     // * If we can't write AND we can update
     if (stream->write_flag == SO_FALSE && stream->update_flag == SO_TRUE)
     {
-        //PRINT_MY_ERROR("Fflush needed");
+        // * USER MUST SEEK BEFORE WRITING
         return SO_EOF;
-    }
-
-    //* We need to seek the end of the file if we are in append mode
-    if (stream->append_flag)
-    {
-        int ret = so_fseek(stream, 0, SEEK_END);
-        if (ret == -1)
-        {
-            return SO_EOF;
-        }
     }
 
     // * If we can update
@@ -541,15 +531,15 @@ size_t so_fread(void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     if (size == 0 || nmemb == 0)
         return 0;
 
-    long bytesToRead = size * nmemb;
-    long bytesRead = 0;
+    int bytesToRead = size * nmemb;
+    int bytesRead = 0;
     char *given_buf = (char *)ptr;
     int c;
 
-    for (long i = 0; i < bytesToRead; i++)
+    for (int i = 0; i < bytesToRead; i++)
     {
         c = so_fgetc(stream);
-        if (stream -> _feof == SO_TRUE)
+        if (stream->_feof == SO_TRUE || stream->_ferror == SO_TRUE)
         {
             return bytesRead / size;
         }
@@ -566,21 +556,20 @@ size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
     if (size == 0 || nmemb == 0)
         return 0;
 
-    long bytesToWrite = size * nmemb;
-    long bytesWritten = 0;
+    int bytesToWrite = size * nmemb;
+    int bytesWritten = 0;
     char *given_buf = (char *)ptr;
     char c;
     int result;
 
-    for (long i = 0; i < bytesToWrite; i++)
+    for (int i = 0; i < bytesToWrite; i++)
     {
         c = given_buf[i];
-        // if (c == SO_EOF)
-        // { // Not so sure about this one...
-        //     stream->_feof = SO_TRUE;
-        //     return bytesWritten / size;
-        // }
         result = so_fputc((int)c, stream);
+        if (stream->_feof == SO_TRUE || stream->_ferror == SO_TRUE)
+        { // Not so sure about this one...
+            return bytesWritten / size;
+        }
         // if (result < 0)
         // {
         //     stream->_ferror = SO_TRUE;
@@ -594,18 +583,42 @@ size_t so_fwrite(const void *ptr, size_t size, size_t nmemb, SO_FILE *stream)
 
 int so_fclose(SO_FILE *stream)
 {
-    int err_code1;
-    int err_code2;
+    int err_code1 = 0;
+    int err_code2 = 0;
 
     if (stream == NULL)
         return -1;
 
-    err_code1 = so_fflush(stream);
+    if (stream->write_flag)
+    {
+        err_code1 = so_fflush(stream);
+        if (err_code1 != 0)
+        {
+            stream->_ferror = SO_TRUE;
+            if (stream->_buf_base != NULL)
+            {
+                free(stream->_buf_base);
+                stream->_buf_base = NULL;
+            }
+            if (stream != NULL)
+            {
+                free(stream);
+                stream = NULL;
+            }
+            return SO_EOF;
+        }
+    }
 
-    free(stream->_buf_base);
-
+    if (stream->_buf_base != NULL)
+    {
+        // memset(stream->_buf_base, '\0', SO_BUFFER_SIZE);
+        free(stream->_buf_base);
+        stream->_buf_base = NULL;
+    }
     stream->_read_ptr = NULL;
+    stream->_read_end = NULL;
     stream->_write_ptr = NULL;
+    stream->_write_end = NULL;
     stream->_buf_end = NULL;
 
 #if defined(__linux__)
@@ -616,13 +629,17 @@ int so_fclose(SO_FILE *stream)
 #error "Unknown platform"
 #endif
 
-    free(stream);
-    if (err_code1 != 0 || err_code2 == SO_EOF)
+    if (err_code2 == SO_EOF)
     {
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
-    stream = NULL;
+
+    if (stream != NULL)
+    {
+        free(stream);
+        stream = NULL;
+    }
 
     return 0;
 }
