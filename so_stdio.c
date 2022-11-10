@@ -32,7 +32,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      GENERIC_READ,
+                                      FILE_SHARE_READ,
+                                      NULL,
+                                      OPEN_EXISTING,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -66,7 +72,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      GENERIC_READ | GENERIC_WRITE,
+                                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                      NULL,
+                                      OPEN_EXISTING,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -100,7 +112,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      GENERIC_WRITE,
+                                      FILE_SHARE_WRITE,
+                                      NULL,
+                                      CREATE_ALWAYS,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -134,7 +152,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      GENERIC_WRITE | GENERIC_READ,
+                                      FILE_SHARE_WRITE | FILE_SHARE_READ,
+                                      NULL,
+                                      CREATE_ALWAYS,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -168,7 +192,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      FILE_APPEND_DATA,
+                                      FILE_SHARE_WRITE,
+                                      NULL,
+                                      OPEN_ALWAYS,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -202,7 +232,13 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             }
 
 #elif defined(_WIN32)
-            so_file->fd = CreateFileA(pathname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+            so_file->fd = CreateFileA(pathname,
+                                      FILE_APPEND_DATA | GENERIC_READ,
+                                      FILE_SHARE_WRITE | FILE_SHARE_READ,
+                                      NULL,
+                                      OPEN_ALWAYS,
+                                      FILE_ATTRIBUTE_NORMAL,
+                                      NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
                 // PRINT_MY_ERROR("CreateFile");
@@ -228,6 +264,11 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
     }
 
     so_file->_buf_base = (char *)calloc(SO_BUFFER_SIZE, sizeof(char));
+    if (so_file->_buf_base == NULL)
+    {
+        so_file->_ferror = SO_TRUE;
+        return NULL;
+    }
     so_file->_buf_end = so_file->_buf_base + SO_BUFFER_SIZE;
 
     so_file->_write_ptr = so_file->_buf_base;
@@ -279,14 +320,14 @@ int so_fflush(SO_FILE *stream)
         BOOL result;
         while (count_total_bytes < bytesToWrite)
         {
-            result = WriteFile(stream->_hFile,
-                               stream->_buffer_base + count_total_bytes,
-                               bytesToWrite - count_total_bytes,
+            result = WriteFile(stream->fd,
+                               stream->_buf_base + count_total_bytes,
+                               stream->_bytesWrite - count_total_bytes,
                                &bytesWritten,
                                NULL);
             if (result != TRUE)
             {
-                // PRINT_MY_ERROR("Write-fflush");
+                stream->_ferror = SO_TRUE;
                 return SO_EOF;
             }
 
@@ -343,7 +384,6 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
     ret = SetFilePointer(stream->fd, offset, NULL, whence);
     if (ret == INVALID_SET_FILE_POINTER)
     {
-        // PRINT_MY_ERROR("SetFilePointer");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
@@ -399,7 +439,17 @@ int so_fgetc(SO_FILE *stream)
             return SO_EOF;
         }
 #elif defined(_WIN32)
-
+        BOOL ret = ReadFile(stream->fd, stream->_buf_base, SO_BUFFER_SIZE, &readBytes, NULL);
+        if (ret != TRUE)
+        {
+            stream->_ferror = SO_TRUE;
+            return SO_EOF;
+        }
+        if (ret && readBytes == 0)
+        {
+            stream->_feof = SO_EOF;
+            return SO_EOF;
+        }
 #else
 #error "Unknown platform"
 #endif
@@ -651,5 +701,20 @@ SO_FILE *so_popen(const char *command, const char *type)
 
 int so_pclose(SO_FILE *stream)
 {
-    return 0;
+    int pid =  stream->pid;
+    if(pid <= 0 ){
+        stream->_ferror = SO_TRUE;
+        return SO_EOF;
+    }
+    int res = 0;
+    res = so_fclose(stream);
+    if(res < 0){
+        return SO_EOF;
+    }
+
+    int status;
+
+    if(waitpid(pid, &status, 0) == -1)
+        return SO_EOF;
+    return status;
 }

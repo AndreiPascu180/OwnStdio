@@ -60,4 +60,6 @@ struct _so_file
     int update_flag;     /*Set for + mode*/
 
     unsigned long _file_pointer_pos;
+
+    pid_t pid;
 };
