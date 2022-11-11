@@ -10,3 +10,9 @@ A homework project that implements the stdio library
 ### https://github.com/rkibistu/Own-implementation-stdio.h/blob/master/so_stdio.c
 ### https://github.com/shawnq8861/System-Programming/tree/master/StdioImplementation
 ### All the man pages for the functions in stdio - for return values, error cases etc.
+
+## Windows
+### https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+### https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfilepointer
+### https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+### https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile
