@@ -1,5 +1,4 @@
 #include "so_handle.h"
-#include "utils.h"
 
 static int check_mode(const char *mode);
 
@@ -9,10 +8,9 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
 
     if (check_mode(mode) == SO_TRUE)
     {
-        so_file = (SO_FILE *)calloc(1, sizeof(SO_FILE));
+        so_file = (SO_FILE *)malloc(sizeof(SO_FILE));
         if (so_file == NULL)
         {
-            ////PRINT_MY_ERROR("malloc failed");
             so_file->_ferror = SO_TRUE;
             return NULL;
         }
@@ -25,7 +23,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDONLY);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -41,7 +38,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -65,7 +61,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDWR);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -81,7 +76,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -105,7 +99,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_WRONLY | O_TRUNC | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -121,7 +114,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -145,7 +137,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_RDWR | O_TRUNC | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -161,7 +152,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -185,7 +175,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_APPEND | O_WRONLY | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -201,7 +190,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -225,7 +213,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
             so_file->fd = open(pathname, O_APPEND | O_RDWR | O_CREAT, 0644);
             if (so_file->fd == -1)
             {
-                // PRINT_MY_ERROR("open");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -241,7 +228,6 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
                                       NULL);
             if (so_file->fd == INVALID_HANDLE_VALUE)
             {
-                // PRINT_MY_ERROR("CreateFile");
                 so_file->_ferror = SO_TRUE;
                 free(so_file);
                 return NULL;
@@ -259,11 +245,10 @@ SO_FILE *so_fopen(const char *pathname, const char *mode)
     }
     else
     {
-        // PRINT_MY_ERROR("Invalid mode");
         return NULL;
     }
 
-    so_file->_buf_base = (char *)calloc(SO_BUFFER_SIZE, sizeof(char));
+    so_file->_buf_base = (char *)malloc(SO_BUFFER_SIZE * sizeof(char));
     if (so_file->_buf_base == NULL)
     {
         so_file->_ferror = SO_TRUE;
@@ -298,14 +283,25 @@ int so_fflush(SO_FILE *stream)
         int bytesWritten = 0;
         int count_total_bytes = 0;
         if (bytesToWrite == 0)
+        {
             return 0;
+        }
+        if (stream->_write_ptr > stream->_buf_end)
+        {
+            stream->_ferror = SO_TRUE;
+            return SO_EOF;
+        }
+        if (stream->_write_ptr == NULL || stream->_buf_base == NULL)
+        {
+            stream->_ferror = SO_TRUE;
+            return SO_EOF;
+        }
 #if defined(__linux__)
         do
         {
             bytesWritten = write(stream->fd, stream->_buf_base + count_total_bytes, bytesToWrite - count_total_bytes);
             if (bytesWritten == -1)
             {
-                // PRINT_MY_ERROR("write from buffer failed");
                 stream->_ferror = SO_TRUE;
                 return SO_EOF;
             }
@@ -360,7 +356,6 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
 
     if (whence != SEEK_CUR && whence != SEEK_END && whence != SEEK_SET)
     {
-        // PRINT_MY_ERROR("Invalid whence");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
@@ -376,7 +371,6 @@ int so_fseek(SO_FILE *stream, long offset, int whence)
     ret = lseek(stream->fd, offset, whence); // * System call to change the file pointer position to offset relative to the whence
     if (ret == -1)
     {
-        // PRINT_MY_ERROR("lseek");
         stream->_ferror = SO_TRUE;
         return SO_EOF;
     }
@@ -404,10 +398,9 @@ int so_fgetc(SO_FILE *stream)
     // * If we can't read or we've reached the end of the file
     if (stream->read_flag == SO_FALSE || stream->_feof)
     {
-        // * If we can't read AND we can update
+        // * If we can't read AND we can update - Fflush neded!!
         if (stream->read_flag == SO_FALSE && stream->update_flag == SO_TRUE)
         {
-            // PRINT_MY_ERROR("Fflush needed");
             return SO_EOF;
         }
     }
@@ -429,7 +422,6 @@ int so_fgetc(SO_FILE *stream)
         readBytes = read(stream->fd, stream->_buf_base, SO_BUFFER_SIZE);
         if (readBytes == -1)
         {
-            // PRINT_MY_ERROR("read into buffer failed");
             stream->_ferror = SO_TRUE;
             return SO_EOF;
         }
@@ -467,7 +459,6 @@ int so_fgetc(SO_FILE *stream)
 
     // if (chr < 0)
     // {
-    //     PRINT_MY_ERROR("Invalid character");
     //     return SO_EOF;
     // }
 
@@ -500,7 +491,6 @@ int so_fputc(int c, SO_FILE *stream)
         int result = so_fflush(stream);
         if (result != 0)
         {
-            PRINT_MY_ERROR("Error writing from buffer");
             stream->_ferror = SO_TRUE;
             return SO_EOF;
         }
@@ -642,7 +632,7 @@ int so_fclose(SO_FILE *stream)
     if (stream->write_flag)
     {
         err_code1 = so_fflush(stream);
-        if (err_code1 != 0)
+        if (err_code1 != 0 || stream->_ferror != 0 || stream->_feof != 0)
         {
             stream->_ferror = SO_TRUE;
             if (stream->_buf_base != NULL)
@@ -670,6 +660,11 @@ int so_fclose(SO_FILE *stream)
     stream->_write_ptr = NULL;
     stream->_write_end = NULL;
     stream->_buf_end = NULL;
+    stream->read_flag = 0;
+    stream->write_flag = 0;
+    stream->append_flag = 0;
+    stream->update_flag = 0;
+    stream->pid = 0;
 
 #if defined(__linux__)
     err_code2 = close(stream->fd);
@@ -687,6 +682,7 @@ int so_fclose(SO_FILE *stream)
 
     if (stream != NULL)
     {
+        stream->fd = 0;
         free(stream);
         stream = NULL;
     }
@@ -696,25 +692,118 @@ int so_fclose(SO_FILE *stream)
 
 SO_FILE *so_popen(const char *command, const char *type)
 {
-    return NULL;
+    int fds[2];
+    int read_mode = 0;
+    int write_mode = 0;
+    if (strcmp(type, "r") == 0)
+    {
+        read_mode = SO_TRUE;
+    }
+    else if (strcmp(type, "w") == 0)
+    {
+        write_mode = SO_TRUE;
+    }
+    int bRet = pipe(fds);
+    if (bRet < 0)
+    {
+        printf("Cannot create a pipe!");
+        return NULL;
+    }
+    pid_t pid = fork();
+    int fileDescriptor = 0;
+    if (pid < 0)
+    {
+        close(fds[0]);
+        close(fds[1]);
+        return NULL;
+    }
+    else if (pid == 0)
+    {
+        if (read_mode)
+        {
+            close(fds[0]);
+            dup2(fds[1], STDOUT_FILENO);
+            close(fds[1]);
+        }
+        else
+        {
+            close(fds[1]);
+            dup2(fds[0], STDIN_FILENO);
+            close(fds[0]);
+        }
+        int ok;
+        ok = execlp("sh", "sh", "-c", command, NULL);
+        exit(1);
+    }
+    else
+    {
+        if (read_mode)
+        {
+            close(fds[1]);
+            fileDescriptor = fds[0];
+        }
+        else
+        {
+            close(fds[0]);
+            fileDescriptor = fds[1];
+        }
+    }
+    SO_FILE *so_file = (SO_FILE *)malloc(sizeof(SO_FILE));
+    if (so_file == NULL)
+    {
+        so_file->_ferror = SO_TRUE;
+        free(so_file);
+        return NULL;
+    }
+
+    so_file->fd = fileDescriptor;
+    so_file->pid = pid;
+
+    so_file->_buf_base = (char *)malloc(SO_BUFFER_SIZE * sizeof(char));
+    if (so_file->_buf_base == NULL)
+    {
+        so_file->_ferror = SO_TRUE;
+        return NULL;
+    }
+    so_file->_buf_end = so_file->_buf_base + SO_BUFFER_SIZE;
+
+    so_file->_write_ptr = so_file->_buf_base;
+    so_file->_write_end = so_file->_buf_end;
+
+    so_file->_read_ptr = so_file->_buf_base;
+    so_file->_read_end = so_file->_read_ptr;
+
+    so_file->_feof = SO_FALSE;
+    so_file->_ferror = SO_FALSE;
+
+    so_file->_file_pointer_pos = 0;
+
+    so_file->read_flag = read_mode;
+    so_file->write_flag = write_mode;
+    so_file->append_flag = SO_FALSE;
+    so_file->update_flag = SO_FALSE;
+
+    return so_file;
 }
 
 int so_pclose(SO_FILE *stream)
 {
-    int pid =  stream->pid;
-    if(pid <= 0 ){
-        stream->_ferror = SO_TRUE;
-        return SO_EOF;
-    }
-    int res = 0;
-    res = so_fclose(stream);
-    if(res < 0){
+    pid_t pid = stream->pid;
+    if (pid == -1)
+    {
         return SO_EOF;
     }
 
+    int ret = so_fclose(stream);
+    if (ret != 0)
+    {
+        return SO_EOF;
+    }
     int status;
-
-    if(waitpid(pid, &status, 0) == -1)
-        return SO_EOF;
+    ret = waitpid(pid, &status, 0);
+    if (ret < 0)
+    {
+        return ret;
+    }
     return status;
 }
